@@ -57,7 +57,7 @@ passport.use(new FacebookStrategy({
     callbackURL: "http://www.example.com/auth/facebook/callback"
   },
   function(accessToken, refreshToken, profile, done) {
-    User.findOrCreate({facebookId: }, function(err, user) {
+    User.findOrCreate({facebookId: profile.id}, function(err, user) {
       if (err) { return done(err); }
       done(null, user);
     });
@@ -71,7 +71,8 @@ mongoose.set('useCreateIndex', true);
 const userSchema = new mongoose.Schema ({
     email: String,
     password: String,
-    googleId: String
+    googleId: String,
+    facebookId: String
 });
 
 userSchema.plugin(passportLocalMongoose);
@@ -95,6 +96,17 @@ app.get("/auth/google/secrets",
   });
 
 app.get('/auth/facebook', passport.authenticate('facebook'));
+
+app.get('/auth/facebook/callback',
+  passport.authenticate('facebook', { successRedirect: '/', failureRedirect: '/login' }));
+                                    
+  app.get('/auth/facebook',
+  passport.authenticate('facebook', { scope: 'read_stream' })
+);
+
+app.get('/auth/facebook',
+  passport.authenticate('facebook', { scope: ['read_stream', 'publish_actions'] })
+);
 
 app.get("/login", (req, res) => {
     res.render("login.ejs");
