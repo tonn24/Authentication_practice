@@ -117,11 +117,40 @@ app.get("/register", (req, res) => {
 });
 
 app.get("/secrets", (req, res) => {
+    User.find({Secret:{$ne: null}}, (err, foundUsers) => {
+        if(err){
+            console.log(err);
+        } else {
+            if(foundUsers){
+                res.render("secrets.ejs", {usersWithSecrets: foundUsers})
+            }
+        }
+    });
+});
+
+app.get("/submit", (req, res) => {
     if(req.isAuthenticated()){
-        res.render("secrets.ejs");
+        res.render("submit.ejs");
     } else {
-        res.redirect("/home");
+        res.redirect("/login");
     }
+});
+
+app.post("/submit", (req, res) => {
+    const submittedSecret = req.body.secret;
+
+    console.log(req.user.id);
+
+    User.findById(req.user.id, (err, foundUser) => {
+        if(err){
+            console.log(err);
+        } else {
+            foundUser.secret = submittedSecret;
+            foundUser.save(function(){
+                res.redirect("/secrets")
+            });
+        }
+    });
 });
 
 app.post("/register", (req, res) => {
